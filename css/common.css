@@ -1,0 +1,26 @@
+@import url(https://fonts.googleapis.com/css?family=Lato:400,700);
+@import url(http://fonts.googleapis.com/earlyaccess/notosansjp.css);
+
+body {
+	font-family: Consolas, Lato, "Noto Sans JP", "游ゴシック Medium", "游ゴシック体", "Yu Gothic Medium", YuGothic, "ヒラギノ角ゴ ProN", "Hiragino Kaku Gothic ProN", "メイリオ", Meiryo, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+}
+
+table.type05 {
+	border-collapse: separate;
+	border-spacing: 1px;
+	text-align: left;
+	line-height: 1.2;
+	border-top: 1px solid #ccc;
+}
+table.type05 th {
+	padding: 4px;
+	font-weight: bold;
+	vertical-align: top;
+	border-bottom: 1px solid #666;
+	background: #efefef;
+}
+table.type05 td {
+	padding: 4px;
+	vertical-align: top;
+	border-bottom: 1px solid #666;
+}

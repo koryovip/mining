@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="keywords" content="" />
+		<meta name="description" content="" />
+		<title>KoRyo Mining Monitor</title>
+		<link rel="stylesheet" type="text/css" href="./css/common.css" />
+		<!-- <link rel="stylesheet" type="text/css" href="../public/css/style.css" /> -->
+	</head>
+	<body>
+		<!--头部 S-->
+		<div class="topHead">
+			<table class="type05">
+				<tr>
+					<td>Unpiad Balance</td><td><span id="sia_balance"></span></td><td><span id="sia_balance_usd"></span></td>
+				</tr>
+				<tr>
+					<td>last_share_time</td><td><span id="sia_last_share_time"></span></td><td><span id=""></span></td>
+				</tr>
+			</table>
+		</div>
+		<div>
+			<table class="type05">
+				<thead>
+					<tr>
+						<th>aa</th><th>Hash Rate</th><th>Rewards</th><th>USD</th><th>Next Paid</th>
+					</tr>
+				</thead>
+				<tbody id="sia_intervals"></tbody>
+			</table>
+		</div>
+		<!--头部 E-->
+		
+		<!--主体 S-->
+		<div class="mainCn" style="padding: 30px 0 50px;">
+			<div class="banxin clearfix">
+				<!--左侧-->
+				<div class="mainLeft fl">
+					
+				</div>
+				<!--中间-->
+				<div class="mainCenter fl spec">
+					
+				</div>
+				<!--右侧-->
+				<div class="mainRight fl">
+					
+					
+					
+				</div>
+			</div>
+		</div>
+		<!--主体 E-->
+		
+		<!--底部 S-->
+		<div class="footer">
+			
+		</div>
+		<!--底部 E-->
+	</body>
+	<script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="./js/moment.min.js"></script>
+	<script type="text/javascript">
+		format1 = function(value) {
+			if (value === 300) return '5 minutes';
+			if (value === 900) return '15 minutes';
+			if (value === 3600) return '60 minutes';
+			if (value === 21600) return '6 hours';
+			if (value === 86400) return '24 hours';
+		};
+		format2 = function(value, rewards) {
+			if (value === 300) {
+				return 500 / (rewards*60*24/5);
+			}
+			if (value === 900) {
+				return 500 / (rewards*60*24/15);
+			}
+			if (value === 3600) {
+				return 500 / (rewards*24);
+			}
+			if (value === 86400) {
+				return 500 / rewards;
+			}
+			return 0;
+
+		};
+		sia2USD = function(value) {
+			return value * 4.64 / 1000;
+		};
+		myRound = function(_val) {
+			return Math.floor(_val * 1000) / 1000;
+		};
+		$(document).ready(function(){
+			$.getJSON( "get.php", function( data ) {
+				$('#sia_balance').text(myRound(data.balance));
+				$('#sia_balance_usd').text(myRound(sia2USD(data.balance)));
+				var lastShareTime = moment.unix(data.last_share_time);
+				$('#sia_last_share_time').text(lastShareTime.fromNow() + ' (' + lastShareTime.format('YYYY/MM/DD HH:mm:ss') + ')');
+				var str = '';
+				$.each(data.intervals, function(index, value) {
+					str += '<tr>';
+					str += '<td>' + format1(value.interval) + '</td>';
+					str += '<td>' + Math.round(value.hash_rate/1000/1000) + ' MH/s</td>';
+					str += '<td>' + myRound(value.rewards) + '</td>';
+					str += '<td>' + myRound(sia2USD(value.rewards)) + '</td>';
+					str += '<td>' + myRound(format2(value.interval, value.rewards)) + '</td>';
+					str += '</tr>'
+				});
+				console.log(str);
+				$('#sia_intervals').html(str);
+			});
+		});
+	</script>
+</html>

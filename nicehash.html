@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="keywords" content="" />
+		<meta name="description" content="" />
+		<title>KoRyo Mining Monitor</title>
+		<link rel="stylesheet" type="text/css" href="./css/common.css" />
+		<!-- <link rel="stylesheet" type="text/css" href="../public/css/style.css" /> -->
+	</head>
+	<body>
+		<!--头部 S-->
+		<div class="topHead">
+		</div>
+		<div>
+			<table class="type05">
+				<thead>
+					<tr>
+						<th>RigName</th><th>algorithm</th><th>speed</th><th>connected</th><th>difficulty</th><th>location</th>
+					</tr>
+				</thead>
+				<tbody id="sia_intervals"></tbody>
+			</table>
+            <div><span>Unpaid Balance: </span><span id="balance"></span><span> BTC</span></div>
+            <div><span>Profitability : </span><span id="profitability"></span><span> BTC/Day</span></div>
+            <canvas id="myChart"></canvas>
+		</div>
+		<!--头部 E-->
+		
+		<!--主体 S-->
+		<div class="mainCn" style="padding: 30px 0 50px;">
+			<div class="banxin clearfix">
+				<!--左侧-->
+				<div class="mainLeft fl">
+					
+				</div>
+				<!--中间-->
+				<div class="mainCenter fl spec">
+					
+				</div>
+				<!--右侧-->
+				<div class="mainRight fl">
+					
+					
+					
+				</div>
+			</div>
+		</div>
+		<!--主体 E-->
+		
+		<!--底部 S-->
+		<div class="footer">
+			
+		</div>
+		<!--底部 E-->
+	</body>
+	<script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="./js/moment.min.js"></script>
+    <script type="text/javascript" src="./js/Chart.min.js"></script>
+    <script type="text/javascript" src="./js/strbuf.js"></script>
+	<script type="text/javascript">
+        var convert_1 = function(algorithm) {
+            switch (algorithm) {
+                case 8:
+                    return 'NeoScrypt(Feathercoin)';
+                case 20:
+                    return 'DaggerHashimoto';
+                case 24:
+                    return 'Equihash(Zcash)';
+                case 26:
+                    return 'X11Gost';
+                case 27:
+                    return 'Sia';
+                default:
+                    return algorithm;
+            }
+        };
+        var convert_2 = function(location) {
+            switch (location) {
+                case 3:
+                    return 'jp';
+                default:
+                    return location;
+            }
+        };
+        var getStr = function(str, def) {
+            if (str) {
+                return str;
+            }
+            return def;
+        };
+        var getworkers = function() {
+            var jqxhr = $.ajax({
+                type: 'POST',
+                url: 'get_nicehash.php'
+            })
+            .done(function(result, textStatus, jqXHR) {
+                console.log(result);
+                if (result && result.result && result.result.error) {
+                    alert(result.result.error);
+                    return;
+                }
+                if (result && result.result && result.result.workers) {
+                    var tblBody = new StrBuf();
+                    var len = result.result.workers.length;
+                    for (var ii = 0; ii < len; ii++) {
+                        tblBody.push('<tr>');
+                        var data = result.result.workers[ii];
+                        tblBody.push('<td>').push(data[0]).push('</td>');
+                        tblBody.push('<td>').push(convert_1(data[6])).push('</td>');
+                        tblBody.push('<td>').push(getStr(data[1].a, '0')).push('</td>');
+                        tblBody.push('<td>').push(data[2]).push(' min</td>');
+                        tblBody.push('<td>').push(data[4]).push('</td>');
+                        tblBody.push('<td>').push(convert_2(data[5])).push('</td>');
+                        tblBody.push('</tr>');
+                    }
+                    //console.log(tblBody);
+                    $('#sia_intervals').html(tblBody.toString());
+                }
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {})
+            .always(function(data$jqXHR, textStatus, jqXHR$errorThrown) {});
+            //jqxhr.always(function() {});
+        };
+        var gethistory = function() {
+            var jqxhr = $.ajax({
+                type: 'POST',
+                url: 'get_nicehash_ex.php'
+            })
+            .done(function(result, textStatus, jqXHR) {
+                console.log(result);
+                if (result && result.result && result.result.error) {
+                    alert(result.result.error);
+                    return;
+                }
+                if (result && result.result && result.result.current) {
+                    var balance = 0;
+                    var profitability = 0;
+                    var len = result.result.current.length;
+                    var labels = [];
+                    var cdatas = [];
+                    var colors = [];
+                    for (var ii = 0; ii < len; ii++) {
+                        var data = result.result.current[ii];
+                        balance += parseFloat(data.data[1]);
+                        profitability += parseFloat(data.profitability);
+                        labels.push(data.name);
+                        cdatas.push(data.data[1]);
+                        colors.push(dynamicColors());
+                    }
+                    // console.log(profitability);
+                    document.getElementById('balance').innerHTML = balance.toFixed(8).toString(10);
+                    document.getElementById('profitability').innerHTML = profitability.toFixed(8).toString(10);
+
+                    var ctx = document.getElementById("myChart").getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                backgroundColor: colors,
+                                data: cdatas
+                            }]
+                        }
+                    });
+                }
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {})
+            .always(function(data$jqXHR, textStatus, jqXHR$errorThrown) {});
+            //jqxhr.always(function() {});
+        };
+		$(document).ready(function(){
+			$.ajaxSetup({ cache: false });
+            getworkers();
+            gethistory();
+		});
+        var dynamicColors = function() {
+            var r = Math.floor(Math.random() * 255);
+            var g = Math.floor(Math.random() * 255);
+            var b = Math.floor(Math.random() * 255);
+            return "rgb(" + r + "," + g + "," + b + ")";
+        };
+	</script>
+</html>
